@@ -77,7 +77,7 @@ class GHAapp < Sinatra::Application
       default_branch = @payload['repository']['default_branch']
       if committer == "web-flow"
         @installation_client.protect_branch( @repo_name, default_branch, 
-         :enforce_admins => nil, :required_pull_request_reviews => nil, :restrictions => nil )
+         enforce_admins: nil, required_pull_request_reviews: nil, restrictions: nil )
         @installation_client.create_issue( @repo_name, "Protect #{default_branch}", "@lydiatripp")
       end
 
