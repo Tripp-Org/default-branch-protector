@@ -26,9 +26,9 @@ You will also need smee setup on your machine as well.  I used the smee node cli
 
 Once you are running the server and Smee, you can see the app work! 
 
-1. Create a new repository in the TrippOrg organization, make sure you create a readme at the same time as you create the repo.
+1. Create a new repository in the Tripp-Org organization, make sure you create a readme at the same time as you create the repo.
 2. Refresh the new repo main page after the repo is created, you will see that there is now 1 issue, and that @lydiatripp has been notified that the master branch is protected.  
-3. If you go to the settings for the new repo and click on Branches in the table on the left side of the screen, you will notice that that master branch is protected. If you click edit to edit the branch protection rules for the master branch, you will notice that it is not very protected. A further enhancement to this project should allow the app installer configure preferences for the branch protection.  
+3. If you go to the settings for the new repo and click on Branches in the table on the left side of the screen, you will notice that that master branch is protected. If you click edit to edit the branch protection rules for the master branch, you will see the protection rules for the branch.
 
 ## Outside Resources
 

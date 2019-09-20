@@ -33,8 +33,16 @@ class GHAapp < Sinatra::Application
   PRIVATE_KEY = OpenSSL::PKey::RSA.new(ENV['GITHUB_PRIVATE_KEY'].gsub('\n', "\n"))
   WEBHOOK_SECRET = ENV['GITHUB_WEBHOOK_SECRET']
   APP_IDENTIFIER = ENV['GITHUB_APP_IDENTIFIER']
-  GIT_HUB_COMMITTER = {"name"=>"GitHub", "email"=>"noreply@github.com", "username"=>"web-flow"}
+  GIT_HUB_COMMITTER = {"name" => "GitHub", "email" => "noreply@github.com", "username" =>"web-flow"}
   
+  RESTRICTIONS = {
+    enforce_admins: true, 
+    required_pull_request_reviews: {
+      dismiss_stale_reviews: true,
+      require_code_owner_reviews: true,
+      required_approving_review_count: 1 },
+    restrictions: { users: ["lydiatripp"], teams: ["everyone"] }
+  }
 
   # Turn on Sinatra's verbose logging during development
   configure :development do
@@ -73,15 +81,37 @@ class GHAapp < Sinatra::Application
       
       repo_name = @payload['repository']['full_name']
       default_branch = @payload['repository']['default_branch']
-      
-      @installation_client.protect_branch( repo_name, default_branch,
-        enforce_admins: nil, required_pull_request_reviews: nil, restrictions: nil, 
-        accept: 'application/vnd.github.luke-cage-preview+json'.freeze )
+      opts = RESTRICTIONS
+      opts[:accept] = 'application/vnd.github.luke-cage-preview+json'.freeze
+      @installation_client.protect_branch( repo_name, default_branch, opts )
          #enhancement to add these as options for branch protection to be set in the env file
          
-      @installation_client.create_issue( repo_name, "Protect #{default_branch}", 
-        "Branch #{default_branch} protected. @lydiatripp" )
+      @installation_client.create_issue( repo_name, "Protected #{default_branch}", notification_text( default_branch ))
         #enhancement to get user name to be notified from environment vars
+    end
+    
+    def notification_text (default_branch)
+      
+      text = "Branch #{default_branch} protected.
+       Enforce all configured restrictions for administrators is set to #{!RESTRICTIONS[:enforce_admins].nil?}.
+       Require pull requests is set to #{!RESTRICTIONS[:required_pull_request_reviews].nil?}.
+       "
+       
+      if !RESTRICTIONS[:required_pull_request_reviews].nil?
+         text += "The number of pull requests required is #{RESTRICTIONS[:required_pull_request_reviews][:required_approving_review_count]}.
+           Require reviews by code owners is set to #{!RESTRICTIONS[:required_pull_request_reviews][:require_code_owner_reviews].nil?}.
+           Dismiss stale reviews is set to #{!RESTRICTIONS[:required_pull_request_reviews][:dismiss_stale_reviews].nil?}.
+         "
+      end
+      
+      if !RESTRICTIONS[:restrictions].nil?
+        text += "Pushing to the repository is restricted to users: #{RESTRICTIONS[:restrictions][:users].join( ", ")}.
+          Pushing to the repository is restricted to teams: #{RESTRICTIONS[:restrictions][:teams].join( ", ")}.
+          "
+      end
+      
+      text += "@lydiatripp" 
+      
     end
     
     def initial_push?()
