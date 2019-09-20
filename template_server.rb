@@ -30,15 +30,11 @@ set :bind, '0.0.0.0'
 
 class GHAapp < Sinatra::Application
 
-  # Expects that the private key in PEM format. Converts the newlines
   PRIVATE_KEY = OpenSSL::PKey::RSA.new(ENV['GITHUB_PRIVATE_KEY'].gsub('\n', "\n"))
-
-  # Your registered app must have a secret set. The secret is used to verify
-  # that webhooks are sent by GitHub.
   WEBHOOK_SECRET = ENV['GITHUB_WEBHOOK_SECRET']
-
-  # The GitHub App's identifier (type integer) set when registering an app.
   APP_IDENTIFIER = ENV['GITHUB_APP_IDENTIFIER']
+  GIT_HUB_COMMITTER = {"name"=>"GitHub", "email"=>"noreply@github.com", "username"=>"web-flow"}
+  
 
   # Turn on Sinatra's verbose logging during development
   configure :development do
@@ -58,29 +54,13 @@ class GHAapp < Sinatra::Application
 
   post '/event_handler' do
 
-    # # # # # # # # # # # #
-    # ADD YOUR CODE HERE  #
-    # # # # # # # # # # # #
-    action = @payload['action']
-    if action == "created" 
-      @repo_name = @payload['repository']['full_name']
+    if repo_created_event?
+      @@recently_created_repo_name = @payload['repository']['full_name'] 
+      #this is not the best idea, thread safety and timing issues could occur, should really be in DB
     end
-    logger.debug request.env['HTTP_X_GITHUB_EVENT']
-    if request.env['HTTP_X_GITHUB_EVENT'] == "push"
-      logger.debug @payload
-      head_commit = @payload['head_commit']
-      logger.debug head_commit
-      committer = head_commit['committer']['username']
-      logger.debug committer
-      @repo_name = @payload['repository']['full_name']
-      
-      default_branch = @payload['repository']['default_branch']
-      if committer == "web-flow"
-        @installation_client.protect_branch( @repo_name, default_branch, 
-         enforce_admins: nil, required_pull_request_reviews: nil, restrictions: nil )
-        @installation_client.create_issue( @repo_name, "Protect #{default_branch}", "@lydiatripp")
-      end
-
+    
+    if push_event?( request ) && initial_push?  
+      protect_branch_and_notify
     end
       
     200 # success status
@@ -88,13 +68,39 @@ class GHAapp < Sinatra::Application
 
 
   helpers do
+    
+    def protect_branch_and_notify()
+      
+      repo_name = @payload['repository']['full_name']
+      default_branch = @payload['repository']['default_branch']
+      
+      @installation_client.protect_branch( repo_name, default_branch,
+        enforce_admins: nil, required_pull_request_reviews: nil, restrictions: nil, 
+        accept: 'application/vnd.github.luke-cage-preview+json'.freeze )
+         #enhancement to add these as options for branch protection to be set in the env file
+         
+      @installation_client.create_issue( repo_name, "Protect #{default_branch}", 
+        "Branch #{default_branch} protected. @lydiatripp" )
+        #enhancement to get user name to be notified from environment vars
+    end
+    
+    def initial_push?()
+      
+      GIT_HUB_COMMITTER == @payload['head_commit']['committer'] && 
+        "Initial commit" == @payload['head_commit']['message'] &&
+         @@recently_created_repo_name && @payload['repository']['full_name']
+    end
+    
+    def push_event?( request )
+      request.env['HTTP_X_GITHUB_EVENT'] == "push"
+    end
 
-    # # # # # # # # # # # # # # # # #
-    # ADD YOUR HELPER METHODS HERE  #
-    # # # # # # # # # # # # # # # # #
+    def repo_created_event?()
+      @payload['action'] == "created"
+    end
 
     # Saves the raw payload and converts the payload to JSON format
-    def get_payload_request(request)
+    def get_payload_request( request )
       # request.body is an IO or StringIO object
       # Rewind in case someone already read it
       request.body.rewind
@@ -135,7 +141,8 @@ class GHAapp < Sinatra::Application
     # GitHub App, to run API operations.
     def authenticate_installation(payload)
       @installation_id = payload['installation']['id']
-      @installation_token = @app_client.create_app_installation_access_token(@installation_id)[:token]
+      @installation_token = @app_client.create_app_installation_access_token(@installation_id, 
+        accept: 'application/vnd.github.machine-man-preview+json'.freeze)[:token]
       @installation_client = Octokit::Client.new(bearer_token: @installation_token)
     end
 
