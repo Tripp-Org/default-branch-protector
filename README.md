@@ -19,8 +19,8 @@ You will also need smee setup on your machine as well.  I used the smee node cli
 
 ## Run Smee
 
-1. get the smee url from @lydiatripp
-2. run `smee -u URL --path /event_handler` on the command line.
+1. Get the smee url from @lydiatripp
+2. Run `smee -u URL --path /event_handler` on the command line.
 
 ## Create a New Repo
 
