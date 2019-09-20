@@ -1,13 +1,15 @@
-You can use this GitHub App template code as a foundation to create any GitHub App you'd like. You can learn how to configure a template GitHub App by following the "[Setting up your development environment](https://developer.github.com/apps/quickstart-guides/setting-up-your-development-environment/)" quickstart guide on developer.github.com.
+I followed the guidance in the GitHub App template (and used the template to create this default branch protector).
 
 ## Install
 
 To run the code, make sure you have [Bundler](http://gembundler.com/) installed; then enter `bundle install` on the command line.
 
+You will also need smee setup on your machine as well.  I used the smee node client, following the install directions in the [Smee README](https://github.com/probot/smee-client).
+
 ## Set environment variables
 
 1. Create a copy of the `.env-example` file called `.env`.
-2. Add your GitHub App's private key, app ID, and webhook secret to the `.env` file.
+2. Add your GitHub App's private key, app ID, and webhook secret to the `.env` file. -- please contact @lydiatripp for this information as I do not want to publically post this information.
 
 ## Run the server
 
@@ -16,4 +18,14 @@ To run the code, make sure you have [Bundler](http://gembundler.com/) installed;
 
 
 ##Run Smee
-1. run `smee -u https://smee.io/dwSzSr32AIViIJlf --path /event_handler` on the command line.
+
+1. get the smee url from @lydiatripp
+2. run `smee -u URL --path /event_handler` on the command line.
+
+##Create a New Repo
+
+Once you are running the server and are running Smee, you can see the app work! 
+
+1. Create a new repository in the TrippOrg organization, make sure you create a readme at the same time as you create the reop.
+2. Refresh the new repo main page after the repo is created, you will see that there is now 1 issue, and that @lydiatripp has been notified that the master branch is protected.  
+3. If you go to the settings for the new repo and click on Branches in the table on the left side of the screen, you will notice that that master branch is protected. If you click edit to edit the branch protection rules for the master branch, you will notice that it is not very protected. A further enhancement to this project should allow the runner of the server to configure preferences for the branch protection.  
