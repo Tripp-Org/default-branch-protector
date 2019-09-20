@@ -17,12 +17,12 @@ You will also need smee setup on your machine as well.  I used the smee node cli
 1. View the default Sinatra app at `localhost:3000`.
 
 
-##Run Smee
+## Run Smee
 
 1. get the smee url from @lydiatripp
 2. run `smee -u URL --path /event_handler` on the command line.
 
-##Create a New Repo
+## Create a New Repo
 
 Once you are running the server and are running Smee, you can see the app work! 
 
@@ -30,7 +30,7 @@ Once you are running the server and are running Smee, you can see the app work!
 2. Refresh the new repo main page after the repo is created, you will see that there is now 1 issue, and that @lydiatripp has been notified that the master branch is protected.  
 3. If you go to the settings for the new repo and click on Branches in the table on the left side of the screen, you will notice that that master branch is protected. If you click edit to edit the branch protection rules for the master branch, you will notice that it is not very protected. A further enhancement to this project should allow the runner of the server to configure preferences for the branch protection.  
 
-##Outside Resources
+## Outside Resources
 
 1. I used (https://developer.github.com/apps/quickstart-guides/using-the-github-api-in-your-app/) to learn how to create a GitHub app. I also used the template that was available as a part of this quickstart guide (https://github.com/github-developer/using-the-github-api-in-your-app).
 2. [Octokit Ruby Gem](https://github.com/octokit/octokit.rb)
